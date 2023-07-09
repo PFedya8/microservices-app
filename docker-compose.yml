@@ -1,0 +1,50 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management
+    ports:
+        - "5673:5672"
+        - "15673:15672"
+  order:
+    build: ./order-service
+    ports:
+      - "3001:3001"
+    depends_on:
+      - orderdb
+    links:
+      - rabbitmq
+  user:
+    build: ./user-service
+    ports:
+      - "3002:3002"
+    depends_on:
+      - userdb
+  product:
+    build: ./product-service
+    ports:
+      - "3003:3003"
+    depends_on:
+      - productdb
+    links:
+      - rabbitmq
+  orderdb:
+    image: mongo
+    ports:
+        - "27018:27017" # it means that the port 27017 of the container is mapped to the port 27018 of the host machine
+  userdb:
+    image: mongo
+    ports:
+        - "27019:27017"
+  productdb:
+    image: mongo
+    ports:
+        - "27020:27017"
+  nginx: # to test it try to go to http://localhost:80
+    build:
+        context: ./nginx
+        dockerfile: Dockerfile
+    ports:
+        - "80:80"
+    depends_on:
+        - order
+        - user
+        - product
